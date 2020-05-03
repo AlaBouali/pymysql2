@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="pymysql2",
-    version="1.0.0",
+    version="1.0.1",
     author="AlaBouali",
     author_email="trap.leader.123@gmail.com",
     description="Simple and secure module to send safe MySQL queries",
@@ -15,6 +15,11 @@ setuptools.setup(
     install_requires=['pymysql'],
     packages=["pymysql2"],
     license="MIT License",
+    entry_points={
+       'console_scripts': [
+           'xmysql = pymysql2.__main__:run',
+       ],
+    },
     classifiers=[
         "Programming Language :: Python",
         "License :: OSI Approved :: MIT License ",
