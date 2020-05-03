@@ -5,6 +5,8 @@ class session:
     self.statement=None
     self.connection = pymysql.connect(host=host,port=port,user=username,password=password,database=database,autocommit=True)#,database=creds["database"])
     self.cursor = self.connection.cursor()
+ def add_parentheses(self,s):
+     return " ( "+s+" ) "
  def escape_str(self,s):
      return self.connection.escape(s)
  def dict_to_str(self,data,seperator=" , ",escape=True,in_seperator=" ",parentheses=False):
@@ -118,7 +120,7 @@ class session:
      self.statement=self.select_from_format(table,rows,conditions,extras)
      self.cursor.execute(self.statement)
      return self.cursor.fetchall()
- def execute(statement,return_result=True):
+ def execute(self,statement,return_result=True):
      self.cursor.execute(statement)
      if return_result==True:
          return self.cursor.fetchall()
