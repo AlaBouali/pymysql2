@@ -62,7 +62,6 @@ class session:
      self.cursor.execute(self.statement)#,self.escape_str(table))#,{"table":table})
  def drop_table(self,table):
      self.statement='''drop table if exists {}'''.format(pymysql.escape_string(table))
-     print (self.statement)
      self.cursor.execute(self.statement)
  def add_column_format(self,table,columns):
      return '''alter table {} add {}'''.format(pymysql.escape_string(table),self.dict_to_str(columns,escape=False))
