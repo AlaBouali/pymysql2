@@ -48,9 +48,9 @@ def run():
    while True:
     try:
       cmd=input("mysql> ")
-      if ((cmd.lower().strip()=="exit") or (cmd.lower().strip()=="quit")):
+      if (cmd.lower().strip()in ["exit","quit"]):
         s.close()
-        break
+        sys.exit()
       r=s.execute(cmd)
       for x in r:
           print(x)
@@ -61,5 +61,6 @@ def run():
         print(e)
  except Exception as ex:
   print(ex)
+  sys.exit()
 
 run()

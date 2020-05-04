@@ -1,4 +1,21 @@
-import pymysql
+import pymysql,cgi,sys
+
+if  sys.version_info < (3,0):
+    import HTMLParser
+else:
+    import html.parser as HTMLParser
+
+def escape_html(s):
+ '''
+   function to return escaped html string
+ '''
+ return cgi.escape(s,quote=True).replace(':','&#58;')
+
+def unescape_html(s):
+ '''
+   function to return unescaped html string
+ '''
+ return HTMLParser.HTMLParser().unescape(s).encode("utf-8")
 
 class session:
  def __init__(self,host,port,username,password,database):
