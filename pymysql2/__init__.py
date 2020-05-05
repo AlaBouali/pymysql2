@@ -11,11 +11,11 @@ def escape_html(s):
  '''
  return cgi.escape(s,quote=True).replace(':','&#58;')
 
-def unescape_html(s):
+def unescape_html(s,encoding="utf-8"):
  '''
    function to return unescaped html string
  '''
- return HTMLParser.HTMLParser().unescape(s).encode("utf-8").replace('&#58;',':')
+ return HTMLParser.HTMLParser().unescape(s).encode(encoding).replace('&#58;',':')
 
 class session:
  def __init__(self,host,port,username,password,database):
