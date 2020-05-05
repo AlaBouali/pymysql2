@@ -15,7 +15,7 @@ def unescape_html(s):
  '''
    function to return unescaped html string
  '''
- return HTMLParser.HTMLParser().unescape(s).encode("utf-8")
+ return HTMLParser.HTMLParser().unescape(s).encode("utf-8").replace('&#58;',':')
 
 class session:
  def __init__(self,host,port,username,password,database):
