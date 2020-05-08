@@ -14,7 +14,7 @@ options:
 -p: password (default: "")
 -c: commands to execute seperated by ";"
 -db: database to use
--h: display thie help message
+-h: display this help message
 
 Examples:
 
