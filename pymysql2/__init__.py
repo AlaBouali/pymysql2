@@ -9,16 +9,16 @@ def escape_html(s):
  '''
    function to return escaped html string
  '''
- return cgi.escape(s,quote=True).replace(':','&#58;')
+ return cgi.escape(s,quote=True)
 
 def unescape_html(s,encoding="utf-8"):
  '''
    function to return unescaped html string
  '''
- return HTMLParser.HTMLParser().unescape(s).encode(encoding).replace('&#58;',':')
+ return HTMLParser.HTMLParser().unescape(s).encode(encoding)
 
 class session:
- def __init__(self,host,port,username,password,database):
+ def __init__(self,host,username,password,port=3306,database=None):
     self.statement=None
     self.connection = pymysql.connect(host=host,port=port,user=username,password=password,database=database,autocommit=True)#,database=creds["database"])
     self.cursor = self.connection.cursor()
@@ -44,6 +44,15 @@ class session:
      self.connection=None
      self.cursor=None
      self.statement=None
+ def create_database(self,db):
+     self.statement='''create database if not exists {}'''.format(pymysql.escape_string(db))
+     self.cursor.execute(self.statement)
+ def drop_database(self,db):
+     self.statement='''drop database if exists {}'''.format(pymysql.escape_string(db))
+     self.cursor.execute(self.statement)
+ def use_database(self,db):
+     self.statement='''use {}'''.format(pymysql.escape_string(db))
+     self.cursor.execute(self.statement)
  def create_table(self,table,fields):
      self.statement='''create table if not exists {} ( {} )'''.format(pymysql.escape_string(table),self.dict_to_str(fields,escape=False))
      self.cursor.execute(self.statement)#,{"table":table})

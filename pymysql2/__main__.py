@@ -2,41 +2,75 @@ import sys
 if  sys.version_info < (3,0):
     input=raw_input
 from pymysql2.__init__ import session
-l=sys.argv
-if len(l)<5:
-    print("""
 
-Usage:
+msg="""Usage:
 
-xmysql host:port username password database [commands...]
+xmysql [options...]
+
+options:
+
+-s: server to connect to (default: localhost)
+-u: username (default: root)
+-p: password (default: "")
+-c: commands to execute seperated by ";"
+-db: database to use
+-h: display thie help message
 
 Examples:
 
-xmysql localhost:3306 root "" test
+xmysql localhost:3306 -u root -p ""
 
-xmysql localhost root root test "select username,password from users"
+xmysql localhost -u root -p root -db shop -c "select username,password from users"
 
-""")
-    sys.exit()
-if ":" in l[1]:  
-  host=l[1].split(':')[0]
-  port=int(l[1].split(':')[1])
-else:
-    host=l[1]
-    port=3306
-username=l[2]
-password=l[3]
-database=l[4]
+"""
+c=sys.argv
+user="root"
+pwd=""
+host="localhost"
+port=3306
+db=None
 commands=[]
-if len(l)>5:
-  for x in range(5,len(l)):
-    commands.append(l[x])
+
+if len(c)<2:
+    print(msg)
+    sys.exit()
+
+i=0
+while(i<(len(c))):
+    x=c[i]
+    if (x=="-h"):
+        print(msg)
+        sys.exit()
+    if (x=="-s"):
+        host=c[i+1]
+        i+=1
+    if (x=="-u"):
+        user=c[i+1]
+        i+=1
+    if (x=="-p"):
+        pwd=c[i+1]
+        i+=1
+    if (x=="-db"):
+        db=c[i+1]
+        i+=1
+    if (x=="-c"):
+        commands=c[i+1].split(';')
+        i+=1
+    i+=1
+
+if ":" in host:  
+  ip=host.split(':')[0]
+  port=int(host.split(':')[1])
+else:
+    ip=host
+    
 def run():
  try:
-  s=session(host,port,username,password,database)
+  s=session(ip,user,pwd,database=db,port=port)
   if len(commands)>0:
       for i in commands:
         try:
+          print("mysql> "+i)
           r=s.execute(i)
           for x in r:
              print(x)
