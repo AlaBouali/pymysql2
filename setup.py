@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="pymysql2",
-    version="1.0.8",
+    version="1.0.9",
     author="AlaBouali",
     author_email="trap.leader.123@gmail.com",
     description="Simple and secure module to perform safe MySQL queries",
