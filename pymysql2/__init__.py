@@ -18,10 +18,12 @@ def unescape_html(s,encoding="utf-8"):
  return HTMLParser.HTMLParser().unescape(s).encode(encoding)
 
 class session:
- def __init__(self,host,username,password,port=3306,database=None):
+ def __init__(self,host,username,password,port=3306,database=None,timeout=5,charset='utf8'):
     self.statement=None
-    self.connection = pymysql.connect(host=host,port=port,user=username,password=password,database=database,autocommit=True)#,database=creds["database"])
+    self.connection = pymysql.connect(host=host,port=port,user=username,password=password,database=database,autocommit=True,connect_timeout=timeout,charset=charset)
     self.cursor = self.connection.cursor()
+ def is_alive(self):
+     return self.connection.open
  def add_parentheses(self,s):
      return " ( "+s+" ) "
  def escape_str(self,s):
@@ -40,7 +42,8 @@ class session:
      return ''' , '''.join(self.escape_str(row[col]) for col in row.keys())
  def close(self):
      self.cursor.close()
-     self.connection.close()
+     if self.is_alive()==True:
+      self.connection.close()
      self.connection=None
      self.cursor=None
      self.statement=None

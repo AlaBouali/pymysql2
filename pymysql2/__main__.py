@@ -15,6 +15,8 @@ options:
 -c: commands to execute seperated by ";"
 -db: database to use
 -h: display this help message
+-t: timeout (default: 5)
+-ch: charset (default: utf-8)
 
 Examples:
 
@@ -30,6 +32,8 @@ host="localhost"
 port=3306
 db=None
 commands=[]
+timeout=5
+charset="utf8"
 
 if len(c)<2:
     print(msg)
@@ -56,6 +60,12 @@ while(i<(len(c))):
     if (x=="-c"):
         commands=c[i+1].split(';')
         i+=1
+    if (x=="-t"):
+        timeout=int(c[i+1])
+        i+=1
+    if (x=="-ch"):
+        charset=c[i+1]
+        i+=1
     i+=1
 
 if ":" in host:  
@@ -63,10 +73,10 @@ if ":" in host:
   port=int(host.split(':')[1])
 else:
     ip=host
-    
+
 def run():
- try:
-  s=session(ip,user,pwd,database=db,port=port)
+ #try:
+  s=session(ip,user,pwd,database=db,port=port,timeout=timeout,charset=charset)
   if len(commands)>0:
       for i in commands:
         try:
@@ -93,8 +103,8 @@ def run():
         sys.exit()
     except Exception as e:
         print(e)
- except Exception as ex:
+"""except Exception as ex:
   print(ex)
-  sys.exit()
+  sys.exit()"""
 
 run()
