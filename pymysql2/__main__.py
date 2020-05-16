@@ -16,7 +16,7 @@ options:
 -db: database to use
 -h: display this help message
 -t: timeout (default: 5)
--ch: charset (default: utf-8)
+-ch: charset (default: utf8)
 
 Examples:
 
@@ -75,7 +75,7 @@ else:
     ip=host
 
 def run():
- #try:
+ try:
   s=session(ip,user,pwd,database=db,port=port,timeout=timeout,charset=charset)
   if len(commands)>0:
       for i in commands:
@@ -103,8 +103,8 @@ def run():
         sys.exit()
     except Exception as e:
         print(e)
-"""except Exception as ex:
+ except Exception as ex:
   print(ex)
-  sys.exit()"""
+  sys.exit()
 
 run()
