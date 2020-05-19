@@ -75,11 +75,6 @@ class session:
     if parentheses==True:
         s=self.add_parentheses(s)
     return s
- def tuple_to_str(self,data,parentheses=False):
-    s= '''{}'''.format("").join(['%s{}%s'.format(data[0],data[1],) % (data[0], self.escape_str(data[1])) for (key, value) in data.items()])
-    if parentheses==True:
-        s=self.add_parentheses(s)
-    return s
  def get_colums_format(self,row):
      return ''' , '''.join('{}'.format(pymysql.escape_string(col)) for col in row.keys())
  def get_values_format(self,row):
