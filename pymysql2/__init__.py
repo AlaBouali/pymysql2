@@ -245,10 +245,12 @@ def infos(host="localhost",username="root",password="",port=3306,timeout=5,ssl=N
 class pool:
  def __init__(self,info):#this function takes a list ("hosts" parameter) each element as a dict created by the function "dict_host" and use the information stored on it to create a session object for each ip
   self.pool=[]
+  self.check_running=False
   self.used=0
   self.size=0
   self.infos=info
   self.rec=0
+  self.stop_conn_check=False
   self.alive=self.infos["keep_alive"]
   self.check_interval=self.infos["check_interval"]
   self.th=None
@@ -261,7 +263,7 @@ class pool:
   while (self.size<self.infos["size"]):# and (self.size<self.infos["max_connections"] ):
       time.sleep(.01)
   if self.alive==True:
-    self.th=threading.Thread(target=self.keep_alive).start()
+    self.start_check()
  def connect_to_host(self):#connect to a single host it takes the "host_dict" 's returned value and save the ip and the session on the "self.sessions" variable 
   try:
    t=session(self.infos["host"],self.infos["username"],self.infos["password"],timeout=self.infos["timeout"],ssl=self.infos["ssl"],database=self.infos["database"],port=self.infos["port"],autocommit=self.infos["autocommit"],charset=self.infos["charset"])
@@ -301,10 +303,17 @@ class pool:
       self.pool.remove(x)
       self.used+=1
       return x
+ def start_check(self):
+     if self.check_running==False:
+      self.th=threading.Thread(target=self.keep_alive).start()
+ def stop_check(self):
+     self.check_running=False
+     self.stop_conn_check=True
+     del self.th
  def keep_alive(self):
-    stop=False
+    self.stop_conn_check=False
     while True:
-     if stop==True:
+     if self.stop_conn_check==True:
          break
      self.reconnect_all()
      ti=time.time()
@@ -312,7 +321,9 @@ class pool:
          if int(time.time()-ti)==self.check_interval:
              break
          if self.pool==None:
-             stop=True
+             self.stop_conn_check=True
+             break
+         if self.stop_conn_check==True:
              break
          time.sleep(0.01)
  def reconnect_all(self):
@@ -344,6 +355,6 @@ class pool:
      self.size=None
      self.infos=None
      self.rec=None
-     time.sleep(0.1)
-     del self.th
+     self.stop_check()
      self.check_interval=None
+     self.stop_conn_check=None
