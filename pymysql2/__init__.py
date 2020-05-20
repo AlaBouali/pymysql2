@@ -352,8 +352,12 @@ class pool:
      self.available=len(self.pool)
  def kill_connection(self,con):
      con.close()
-     del con
      self.size-=1
+     self.used-=1
+     if con in self.pool:
+         self.pool.remove(con)
+     del con
+     self.available=len(self.pool)
  def destroy(self):
      for x in self.pool:
          x.close()
