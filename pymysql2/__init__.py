@@ -18,10 +18,18 @@ def unescape_html(s,encoding="utf-8"):
  return HTMLParser.HTMLParser().unescape(s).encode(encoding)
 
 class session:
- def __init__(self,host,username,password,port=3306,database=None,timeout=5,charset='utf8',autocommit=True,ssl=None):
+ def __init__(self):
+     self.statement=None
+    self.connection =None
+    self.cursor = None
+ def connect(self,host,username,password,port=3306,database=None,timeout=5,charset='utf8',autocommit=True,ssl=None):
     self.statement=None
     self.connection = pymysql.connect(host=host,port=port,user=username,password=password,ssl=ssl,database=database,autocommit=autocommit,connect_timeout=timeout,charset=charset)
     self.cursor = self.connection.cursor()
+ def replace_connection(self,con):
+     self.close()
+     self.connection=con
+     self.cursor = self.connection.cursor()
  def rollback(self):
      self.connection.rollback()
  def commit(self):
@@ -219,7 +227,8 @@ class pool:
     self.start_check()
  def connect_to_host(self):
   try:
-   t=session(self.infos["host"],self.infos["username"],self.infos["password"],timeout=self.infos["timeout"],ssl=self.infos["ssl"],database=self.infos["database"],port=self.infos["port"],autocommit=self.infos["autocommit"],charset=self.infos["charset"])
+   t=session()
+   t.connect(self.infos["host"],self.infos["username"],self.infos["password"],timeout=self.infos["timeout"],ssl=self.infos["ssl"],database=self.infos["database"],port=self.infos["port"],autocommit=self.infos["autocommit"],charset=self.infos["charset"])
    self.pool.append(t)
   except Exception as e:
    pass
