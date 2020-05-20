@@ -22,10 +22,14 @@ class session:
     self.statement=None
     self.connection =None
     self.cursor = None
- def connect(self,host,username,password,port=3306,database=None,timeout=5,charset='utf8',autocommit=True,ssl=None):
+ def connect(self,host,username,password,port=3306,database=None,timeout=5,charset='utf8',autocommit=True,ssl=None,unix_socket=None,sql_mode=None, read_default_file=None, conv=None, use_unicode=None, client_flag=0, init_command=None, read_default_group=None, compress=None, named_pipe=None, db=None, passwd=None, local_infile=False, max_allowed_packet=16777216, defer_connect=False, auth_plugin_map=None, read_timeout=None, write_timeout=None, bind_address=None, binary_prefix=False, program_name=None, server_public_key=None):
     self.statement=None
-    self.connection = pymysql.connect(host=host,port=port,user=username,password=password,ssl=ssl,database=database,autocommit=autocommit,connect_timeout=timeout,charset=charset)
+    self.connection = pymysql.connect(host=host,port=port,user=username,password=password,ssl=ssl,database=database,autocommit=autocommit,connect_timeout=timeout,charset=charset,unix_socket=unix_socket,sql_mode=sql_mode,read_default_file=read_default_file,conv=conv,use_unicode=use_unicode,client_flag=client_flag,init_command=init_command,read_default_group=read_default_group,compress=compress,named_pipe=named_pipe,db=db,passwd=passwd,local_infile=local_infile,max_allowed_packet=max_allowed_packet,defer_connect=defer_connect,auth_plugin_map=auth_plugin_map,read_timeout=read_timeout,write_timeout=write_timeout, bind_address=bind_address, binary_prefix=binary_prefix, program_name=program_name, server_public_key=server_public_key)
     self.cursor = self.connection.cursor()
+ def begin(self):
+     self.connection.begin()
+ def show_warnings(self):
+     self.connection.show_warnings()
  def replace_connection(self,con):
      self.close()
      self.connection=con
@@ -36,6 +40,8 @@ class session:
      self.connection.commit()
  def reconnect(self):
     self.connection.ping(reconnect=True)
+ def ping(self,reconnect=False):
+    self.connection.ping(reconnect=reconnect)
  def set_max_connections(self,*args):
      if args:
       self.statement='''set global max_connections = {}'''.format(pymysql.escape_string(str(int(args[0]))))
