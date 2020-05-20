@@ -315,6 +315,7 @@ class pool:
  def start_check(self):
      if self.check_running==False:
       self.th=threading.Thread(target=self.keep_alive).start()
+      self.check_running=True
  def stop_check(self):
      self.check_running=False
      self.stop_conn_check=True
