@@ -261,7 +261,9 @@ class pool:
       return x
  def start_check(self):
      if self.check_running==False:
-      self.th=threading.Thread(target=self.keep_alive).start()
+      self.th=threading.Thread(target=self.keep_alive)
+      self.th.daemon=True
+      self.th.start()
       self.check_running=True
  def stop_check(self):
      self.check_running=False
