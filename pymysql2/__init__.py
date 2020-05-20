@@ -22,6 +22,10 @@ class session:
     self.statement=None
     self.connection = pymysql.connect(host=host,port=port,user=username,password=password,ssl=ssl,database=database,autocommit=autocommit,connect_timeout=timeout,charset=charset)
     self.cursor = self.connection.cursor()
+ def rollback(self):
+     self.connection.rollback()
+ def commit(self):
+     self.connection.commit()
  def reconnect(self):
     self.connection.ping(reconnect=True)
  def set_max_connections(self,*args):
@@ -144,10 +148,10 @@ class session:
      return self.cursor.fetchall()
  def create_table(self,table,fields):
      self.statement='''create table if not exists {} ( {} )'''.format(table,self.dict_to_str(fields,escape=False))
-     self.cursor.execute(self.statement)#,{"table":table})
+     self.cursor.execute(self.statement)
  def rename_table(self,old,new):
-     self.statement='''rename table {} to {}'''.format(old,new)#,pymysql.escape_string(new))
-     self.cursor.execute(self.statement)#,{"table":table})
+     self.statement='''rename table {} to {}'''.format(old,new)
+     self.cursor.execute(self.statement)
  def insert_into_table_format(self,table, row):
      cols = self.get_colums_format(row)
      vals = self.get_values_format(row)
@@ -157,7 +161,7 @@ class session:
      self.cursor.execute(self.statement)
  def reset_table(self,table):
      self.statement='''truncate table {}'''.format(table)
-     self.cursor.execute(self.statement)#,self.escape_str(table))#,{"table":table})
+     self.cursor.execute(self.statement)
  def drop_table(self,table):
      self.statement='''drop table if exists {}'''.format(table)
      self.cursor.execute(self.statement)
@@ -212,7 +216,7 @@ class session:
              condition+=self.dict_to_str(x)
          else:
              condition+=" {} ".format(str(x))
-     return """update {} set {} {}""".format(table,row,condition)#self.dict_to_str(condition,seperator=operator,in_seperator=" = "))
+     return """update {} set {} {}""".format(table,row,condition)
  def select_from_format(self,table,rows,conditions=None,extras=None):
      if extras:
          extra=extras
@@ -229,7 +233,7 @@ class session:
              condition+=self.dict_to_str(x)
          else:
              condition+=" {} ".format(str(x))
-     return """select {} from {} {} {}""".format(rows,table,condition,extra)#self.dict_to_str(condition,seperator=operator,in_seperator=" = "))
+     return """select {} from {} {} {}""".format(rows,table,condition,extra)
  def select_from(self,table,rows,conditions=None,extras=None):
      self.statement=self.select_from_format(table,rows,conditions=conditions,extras=extras)
      self.cursor.execute(self.statement)
@@ -243,7 +247,7 @@ def infos(host="localhost",username="root",password="",port=3306,timeout=5,ssl=N
   return {"host":host,"username":username,"password":password,"port":port,"timeout":timeout,"ssl":ssl,"database":database,"autocommit":autocommit,"charset":charset,"size":size,"max_connections":max_connections,"keep_alive":keep_alive,"check_interval":check_interval,"waiting":waiting}
 
 class pool:
- def __init__(self,info):#this function takes a list ("hosts" parameter) each element as a dict created by the function "dict_host" and use the information stored on it to create a session object for each ip
+ def __init__(self,info):
   self.pool=[]
   self.check_running=False
   self.used=0
@@ -260,11 +264,11 @@ class pool:
     t=threading.Thread(target=self.connect_to_host)#we are using threads to speed things up and connect to all hosts in a very short time (few seconds)
     t.start()
     time.sleep(0.001)
-  while (self.size<self.infos["size"]):# and (self.size<self.infos["max_connections"] ):
+  while (self.size<self.infos["size"]):
       time.sleep(.01)
   if self.alive==True:
     self.start_check()
- def connect_to_host(self):#connect to a single host it takes the "host_dict" 's returned value and save the ip and the session on the "self.sessions" variable 
+ def connect_to_host(self):
   try:
    t=session(self.infos["host"],self.infos["username"],self.infos["password"],timeout=self.infos["timeout"],ssl=self.infos["ssl"],database=self.infos["database"],port=self.infos["port"],autocommit=self.infos["autocommit"],charset=self.infos["charset"])
    self.pool.append(t)
