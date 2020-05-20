@@ -71,11 +71,11 @@ class session:
      return " ( "+s+" ) "
  def escape_str(self,s):
      return self.connection.escape(s)
- def dict_to_str(self,data,seperator=' , ',escape=True,parentheses=False):
+ def dict_to_str(self,data,in_seperator=' ',seperator=' , ',escape=True,parentheses=False):
     if escape==True:
-      s= '''{}'''.format(seperator).join(['%s %s' % (key, self.escape_str(value)) for (key, value) in data.items()])
+      s= '''{}'''.format(seperator).join(['%s {} %s'.format(in_seperator) % (key, self.escape_str(value)) for (key, value) in data.items()])
     else:
-      s= '''{}'''.format(seperator).join(['%s %s' % (key, value) for (key, value) in data.items()])
+      s= '''{}'''.format(seperator).join(['%s {} %s'.format(in_seperator) % (key, value) for (key, value) in data.items()])
     if parentheses==True:
         s=self.add_parentheses(s)
     return s
@@ -185,59 +185,6 @@ class session:
  def modify_column(self,table,old,new):
      self.statement=self.modify_column_format(table,old,new)
      self.cursor.execute(self.statement)
- def delete_record(self,table, conditions):
-     self.statement=self.delete_record_format(table, conditions)
-     self.cursor.execute(self.statement)
- def delete_record_format(self,table, conditions):
-     condition=""
-     if conditions:
-       condition=" where "
-       if len(conditions)<2:
-          condition+=self.dict_to_str(conditions)
-       else:
-        for x in conditions:
-         if type(x) is dict:
-             condition+=self.dict_to_str(x)
-         else:
-             condition+=" {} ".format(str(x))
-     return """delete from {} {}""".format(table,condition)
- def update_table(self,table,rows, conditions):
-     self.statement=self.update_column_format(table,rows, conditions)
-     self.cursor.execute(self.statement)
- def update_table_format(self,table,rows, conditions):
-     row=""
-     row+=self.dict_to_str(rows)
-     condition=" where "
-     if len(conditions)<2:
-          condition+=self.dict_to_str(conditions)
-     else:
-       for x in conditions:
-         if type(x) is dict:
-             condition+=self.dict_to_str(x)
-         else:
-             condition+=" {} ".format(str(x))
-     return """update {} set {} {}""".format(table,row,condition)
- def select_from_format(self,table,rows,conditions=None,extras=None):
-     if extras:
-         extra=extras
-     else:
-         extra=""
-     condition=""
-     if conditions:
-       condition=" where "
-       if len(conditions)<2:
-          condition+=self.dict_to_str(conditions)
-       else:
-        for x in conditions:
-         if type(x) is dict:
-             condition+=self.dict_to_str(x)
-         else:
-             condition+=" {} ".format(str(x))
-     return """select {} from {} {} {}""".format(rows,table,condition,extra)
- def select_from(self,table,rows,conditions=None,extras=None):
-     self.statement=self.select_from_format(table,rows,conditions=conditions,extras=extras)
-     self.cursor.execute(self.statement)
-     return self.cursor.fetchall()
  def execute(self,statement,return_result=True):
      self.cursor.execute(statement)
      if return_result==True:
