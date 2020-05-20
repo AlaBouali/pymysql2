@@ -92,8 +92,9 @@ class session:
  def get_values_format(self,row):
      return ''' , '''.join(self.escape_str(row[col]) for col in row.keys())
  def close(self):
-     self.cursor.close()
-     if self.is_alive()==True:
+     if self.cursor:
+      self.cursor.close()
+     if (self.connection) and ( self.is_alive()==True):
       self.connection.close()
      self.connection=None
      self.cursor=None
