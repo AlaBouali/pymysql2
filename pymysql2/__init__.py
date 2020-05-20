@@ -19,7 +19,7 @@ def unescape_html(s,encoding="utf-8"):
 
 class session:
  def __init__(self):
-     self.statement=None
+    self.statement=None
     self.connection =None
     self.cursor = None
  def connect(self,host,username,password,port=3306,database=None,timeout=5,charset='utf8',autocommit=True,ssl=None):
