@@ -197,6 +197,10 @@ class session:
      self.cursor.execute(statement)
      if return_result==True:
          return self.cursor.fetchall()
+ def execute_many(self,statement,datalist,return_result=True):
+     self.cursor.executemany(statement,datalist)
+     if return_result==True:
+         return self.cursor.fetchall()
 
 def infos(host="localhost",username="root",password="",port=3306,timeout=5,ssl=None,database=None,autocommit=True,charset='utf8',size=10,max_connections=30,keep_alive=True,check_interval=60,waiting=True):#this function takes those values and return a dict which contains all necessary information to create a telnet session using those following class
   return {"host":host,"username":username,"password":password,"port":port,"timeout":timeout,"ssl":ssl,"database":database,"autocommit":autocommit,"charset":charset,"size":size,"max_connections":max_connections,"keep_alive":keep_alive,"check_interval":check_interval,"waiting":waiting}
