@@ -254,6 +254,7 @@ class pool:
   self.size=0
   self.infos=info
   self.rec=0
+  self.available=0
   self.stop_conn_check=False
   self.alive=self.infos["keep_alive"]
   self.check_interval=self.infos["check_interval"]
@@ -266,6 +267,7 @@ class pool:
     time.sleep(0.001)
   while (self.size<self.infos["size"]):
       time.sleep(.01)
+  self.available=len(self.pool)
   if self.alive==True:
     self.start_check()
  def connect_to_host(self):
@@ -291,6 +293,7 @@ class pool:
              x.reconnect()
          self.pool.remove(x)
          self.used+=1
+         self.available=len(self.pool)
          return x
       else:
           self.connect_to_host()
@@ -299,6 +302,7 @@ class pool:
              x.reconnect()
           self.pool.remove(x)
           self.used+=1
+          self.available=len(self.pool)
           return x
   else:
       x=random.choice(self.pool)
@@ -306,6 +310,7 @@ class pool:
              x.reconnect()
       self.pool.remove(x)
       self.used+=1
+      self.available=len(self.pool)
       return x
  def start_check(self):
      if self.check_running==False:
@@ -343,8 +348,8 @@ class pool:
      self.rec+=1
  def close_connection(self,con):
      self.pool.append(con)
-     self.size+=1
      self.used-=1
+     self.available=len(self.pool)
  def kill_connection(self,con):
      con.close()
      del con
@@ -362,3 +367,4 @@ class pool:
      self.stop_check()
      self.check_interval=None
      self.stop_conn_check=None
+     self.available=None
