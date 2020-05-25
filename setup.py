@@ -4,13 +4,13 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="pymysql2",
-    version="1.2.4",
+    version="1.2.5",
     author="AlaBouali",
     author_email="trap.leader.123@gmail.com",
-    description="Simple and secure module to perform safe MySQL queries",
+    description="Simple, secure and advanced module to perform safe MySQL queries",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/AlaBouali/bane",
+    url="https://github.com/AlaBouali/pymysql2",
     python_requires=">=2.7",
     install_requires=['pymysql'],
     packages=["pymysql2"],
