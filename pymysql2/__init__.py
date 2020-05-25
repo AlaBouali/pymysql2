@@ -76,18 +76,22 @@ class session:
      self.statement='''set global {}'''.format(self.dict_to_str(params,escape=False))
      self.cursor.execute(self.statement)
  def get_parameter_value(self,name):
-     self.statement='''SHOW VARIABLES LIKE {}'''.format(self.escape_str(name))
+     self.statement='''SHOW VARIABLES LIKE {}'''.format(self.real_escape_str(name))
      self.cursor.execute(self.statement)
      return self.cursor.fetchall()
  def is_alive(self):
-     return self.connection.open
+     if self.connection:
+       return self.connection.open
+     return False
  def add_parentheses(self,s):
      return " ( "+s+" ) "
- def escape_str(self,s):
+ def real_escape_str(self,s):
      return self.connection.escape(s)
+ def escape_str(self,s):
+     return pymysql.escape_string(s)
  def dict_to_str(self,data,in_seperator=' ',seperator=' , ',escape=True,parentheses=False):
     if escape==True:
-      s= '''{}'''.format(seperator).join(['%s {} %s'.format(in_seperator) % (key, self.escape_str(value)) for (key, value) in data.items()])
+      s= '''{}'''.format(seperator).join(['%s {} %s'.format(in_seperator) % (key, self.real_escape_str(value)) for (key, value) in data.items()])
     else:
       s= '''{}'''.format(seperator).join(['%s {} %s'.format(in_seperator) % (key, value) for (key, value) in data.items()])
     if parentheses==True:
@@ -96,7 +100,7 @@ class session:
  def get_colums_format(self,row):
      return ''' , '''.join('{}'.format(pymysql.escape_string(col)) for col in row.keys())
  def get_values_format(self,row):
-     return ''' , '''.join(self.escape_str(row[col]) for col in row.keys())
+     return ''' , '''.join(self.real_escape_str(row[col]) for col in row.keys())
  def close(self):
      if self.cursor:
       self.cursor.close()
@@ -116,10 +120,10 @@ class session:
  def change_password(self,user=None,password=""):
      if not user:
          user=self.current_user()[0]
-     self.statement='''alter user {} identified by {}'''.format(user,self.escape_str(password))
+     self.statement='''alter user {} identified by {}'''.format(user,self.real_escape_str(password))
      self.cursor.execute(self.statement)
  def create_user(self,user,password):
-     self.statement='''create user if not exists {} identified by {}'''.format(user,self.escape_str(password))
+     self.statement='''create user if not exists {} identified by {}'''.format(user,self.real_escape_str(password))
      self.cursor.execute(self.statement)
  def drop_user(self,user):
      self.statement='''drop user if exists {}'''.format(user)
@@ -209,8 +213,8 @@ class session:
      if return_result==True:
          return self.cursor.fetchall()
 
-def infos(host="localhost",username="root",password="",port=3306,timeout=5,ssl=None,database=None,autocommit=True,charset='utf8',size=10,max_connections=30,keep_alive=True,check_interval=60,waiting=True):#this function takes those values and return a dict which contains all necessary information to create a telnet session using those following class
-  return {"host":host,"username":username,"password":password,"port":port,"timeout":timeout,"ssl":ssl,"database":database,"autocommit":autocommit,"charset":charset,"size":size,"max_connections":max_connections,"keep_alive":keep_alive,"check_interval":check_interval,"waiting":waiting}
+def infos(host="localhost",username="root",password="",port=3306,timeout=5,ssl=None,database=None,autocommit=True,charset='utf8',size=10,max_connections=30,keep_alive=True,check_interval=500,waiting=True,dynamic=True,blocking=True,unix_socket=None,sql_mode=None, read_default_file=None, conv=None, use_unicode=None, client_flag=0, init_command=None, read_default_group=None, compress=None, named_pipe=None, db=None, passwd=None, local_infile=False, max_allowed_packet=16777216, defer_connect=False, auth_plugin_map=None, read_timeout=None, write_timeout=None, bind_address=None, binary_prefix=False, program_name=None, server_public_key=None):#this function takes those values and return a dict which contains all necessary information to create a telnet session using those following class
+  return {"host":host,"username":username,"password":password,"port":port,"timeout":timeout,"ssl":ssl,"database":database,"autocommit":autocommit,"charset":charset,"size":size,"max_connections":max_connections,"keep_alive":keep_alive,"check_interval":check_interval,"waiting":waiting,"dynamic":dynamic,"blocking":blocking,"unix_socket":unix_socket,"sql_mode":sql_mode,"read_default_file":read_default_file,"conv":conv,"use_unicode":use_unicode,"client_flag":client_flag,"init_command":init_command,"read_default_group":read_default_group,"compress":compress,"named_pipe":named_pipe, "db":db, "passwd":passwd, "local_infile":local_infile, "max_allowed_packet":max_allowed_packet, "defer_connect":defer_connect, "auth_plugin_map":auth_plugin_map, "read_timeout":read_timeout, "write_timeout":write_timeout, "bind_address":bind_address, "binary_prefix":binary_prefix, "program_name":program_name, "server_public_key":server_public_key}
 
 class pool:
  def __init__(self,info):
@@ -218,20 +222,20 @@ class pool:
   self.check_running=False
   self.used=0
   self.size=0
-  self.infos=info
+  self.configs=info
   self.rec=0
   self.available=0
   self.stop_conn_check=False
-  self.alive=self.infos["keep_alive"]
-  self.check_interval=self.infos["check_interval"]
+  self.alive=self.configs["keep_alive"]
+  self.check_interval=self.configs["check_interval"]
   self.th=None
-  if self.infos["size"]>self.infos["max_connections"]:
-      self.infos["max_connections"]=self.infos["size"]
-  for x in range(self.infos["size"]):
+  if (self.configs["size"]>self.configs["max_connections"]) or (self.configs["dynamic"]==False):
+      self.configs["max_connections"]=self.configs["size"]
+  for x in range(self.configs["size"]):
     t=threading.Thread(target=self.connect_to_host)#we are using threads to speed things up and connect to all hosts in a very short time (few seconds)
     t.start()
     time.sleep(0.001)
-  while (self.size<self.infos["size"]):
+  while (self.size<self.configs["size"]):
       time.sleep(.01)
   self.available=len(self.pool)
   if self.alive==True:
@@ -239,15 +243,16 @@ class pool:
  def connect_to_host(self):
   try:
    t=session()
-   t.connect(self.infos["host"],self.infos["username"],self.infos["password"],timeout=self.infos["timeout"],ssl=self.infos["ssl"],database=self.infos["database"],port=self.infos["port"],autocommit=self.infos["autocommit"],charset=self.infos["charset"])
+   t.connect(self.configs["host"],self.configs["username"],self.configs["password"],timeout=self.configs["timeout"],ssl=self.configs["ssl"],database=self.configs["database"],port=self.configs["port"],autocommit=self.configs["autocommit"],charset=self.configs["charset"],unix_socket=self.configs["unix_socket"], sql_mode=self.configs["sql_mode"], read_default_file=self.configs["read_default_file"], conv=self.configs["conv"], use_unicode=self.configs["use_unicode"], client_flag=self.configs["client_flag"], init_command=self.configs["init_command"], read_default_group=self.configs["read_default_group"], compress=self.configs["compress"], named_pipe=self.configs["named_pipe"], db=self.configs["db"], passwd=self.configs["passwd"], local_infile=self.configs["local_infile"], max_allowed_packet=self.configs["max_allowed_packet"], defer_connect=self.configs["defer_connect"], auth_plugin_map=self.configs["auth_plugin_map"], read_timeout=self.configs["read_timeout"], write_timeout=self.configs["write_timeout"],  bind_address=self.configs["bind_address"],  binary_prefix=self.configs["binary_prefix"],  program_name=self.configs["program_name"],  server_public_key=self.configs["server_public_key"])
    self.pool.append(t)
   except Exception as e:
    pass
   self.size+=1
  def get_connection(self,timeout=5):
   if len(self.pool)==0:
-      if self.size==self.infos["max_connections"]:
-        if self.infos["waiting"]==False:
+    if self.configs["blocking"]==True:
+      if self.size==self.configs["max_connections"]:
+        if self.configs["waiting"]==False:
             raise Exception("Maximum number of connections has been reached")
         else:
          ti=time.time()
@@ -263,6 +268,15 @@ class pool:
          self.available=len(self.pool)
          return x
       else:
+          self.connect_to_host()
+          x=random.choice(self.pool)
+          if x.is_alive()==False:
+             x.reconnect()
+          self.pool.remove(x)
+          self.used+=1
+          self.available=len(self.pool)
+          return x
+    else:
           self.connect_to_host()
           x=random.choice(self.pool)
           if x.is_alive()==False:
@@ -317,8 +331,12 @@ class pool:
      con.reconnect()
      self.rec+=1
  def close_connection(self,con):
-     self.pool.append(con)
+    if con.is_alive()==True:
+     if len(self.pool)>=self.configs["max_connections"]:
+         self.kill_connection(con)
+         return
      self.used-=1
+     self.pool.append(con)
      self.available=len(self.pool)
  def kill_connection(self,con):
      con.close()
@@ -336,7 +354,7 @@ class pool:
      self.pool=None
      self.used=None
      self.size=None
-     self.infos=None
+     self.configs=None
      self.rec=None
      self.stop_check()
      self.check_interval=None
