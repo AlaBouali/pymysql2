@@ -18,14 +18,11 @@ def unescape_html(s,encoding="utf-8"):
  return HTMLParser.HTMLParser().unescape(s).encode(encoding)
 
 class session:
- def __init__(self):
-    self.statement=None
-    self.connection =None
-    self.cursor = None
- def connect(self,host,username,password,port=3306,database=None,timeout=5,charset='utf8',autocommit=True,ssl=None,unix_socket=None,sql_mode=None, read_default_file=None, conv=None, use_unicode=None, client_flag=0, init_command=None, read_default_group=None, compress=None, named_pipe=None, db=None, passwd=None, local_infile=False, max_allowed_packet=16777216, defer_connect=False, auth_plugin_map=None, read_timeout=None, write_timeout=None, bind_address=None, binary_prefix=False, program_name=None, server_public_key=None):
+ def __init__(self,host,username,password,port=3306,database=None,timeout=5,charset='utf8',autocommit=True,ssl=None,unix_socket=None,sql_mode=None, read_default_file=None, conv=None, use_unicode=None, client_flag=0, init_command=None, read_default_group=None, compress=None, named_pipe=None, db=None, passwd=None, local_infile=False, max_allowed_packet=16777216, defer_connect=False, auth_plugin_map=None, read_timeout=None, write_timeout=None, bind_address=None, binary_prefix=False, program_name=None, server_public_key=None):
     self.statement=None
     self.connection = pymysql.connect(host=host,port=port,user=username,password=password,ssl=ssl,database=database,autocommit=autocommit,connect_timeout=timeout,charset=charset,unix_socket=unix_socket,sql_mode=sql_mode,read_default_file=read_default_file,conv=conv,use_unicode=use_unicode,client_flag=client_flag,init_command=init_command,read_default_group=read_default_group,compress=compress,named_pipe=named_pipe,db=db,passwd=passwd,local_infile=local_infile,max_allowed_packet=max_allowed_packet,defer_connect=defer_connect,auth_plugin_map=auth_plugin_map,read_timeout=read_timeout,write_timeout=write_timeout, bind_address=bind_address, binary_prefix=binary_prefix, program_name=program_name, server_public_key=server_public_key)
     self.cursor = self.connection.cursor()
+    self.statement=None
  def begin(self):
      self.connection.begin()
  def show_warnings(self):
@@ -140,7 +137,7 @@ class session:
      self.statement='''show grants for {}'''.format(user)
      self.cursor.execute(self.statement)
      return self.cursor.fetchall()
- def create_dbe(self,db):
+ def create_db(self,db):
      self.statement='''create database if not exists {}'''.format(db)
      self.cursor.execute(self.statement)
  def drop_db(self,db):
@@ -156,11 +153,11 @@ class session:
  def show_dbs(self):
      self.statement='''show databases'''
      self.cursor.execute(self.statement)
-     return self.cursor.fetchall()[0]
+     return self.cursor.fetchall()
  def show_tables(self):
      self.statement='''show tables'''
      self.cursor.execute(self.statement)
-     return self.cursor.fetchall()[0]
+     return self.cursor.fetchall()
  def describe_table(self,name):
      self.statement='''describe {}'''.format(name)
      self.cursor.execute(self.statement)
@@ -242,8 +239,7 @@ class pool:
     self.start_check()
  def connect_to_host(self):
   try:
-   t=session()
-   t.connect(self.configs["host"],self.configs["username"],self.configs["password"],timeout=self.configs["timeout"],ssl=self.configs["ssl"],database=self.configs["database"],port=self.configs["port"],autocommit=self.configs["autocommit"],charset=self.configs["charset"],unix_socket=self.configs["unix_socket"], sql_mode=self.configs["sql_mode"], read_default_file=self.configs["read_default_file"], conv=self.configs["conv"], use_unicode=self.configs["use_unicode"], client_flag=self.configs["client_flag"], init_command=self.configs["init_command"], read_default_group=self.configs["read_default_group"], compress=self.configs["compress"], named_pipe=self.configs["named_pipe"], db=self.configs["db"], passwd=self.configs["passwd"], local_infile=self.configs["local_infile"], max_allowed_packet=self.configs["max_allowed_packet"], defer_connect=self.configs["defer_connect"], auth_plugin_map=self.configs["auth_plugin_map"], read_timeout=self.configs["read_timeout"], write_timeout=self.configs["write_timeout"],  bind_address=self.configs["bind_address"],  binary_prefix=self.configs["binary_prefix"],  program_name=self.configs["program_name"],  server_public_key=self.configs["server_public_key"])
+   t=session(self.configs["host"],self.configs["username"],self.configs["password"],timeout=self.configs["timeout"],ssl=self.configs["ssl"],database=self.configs["database"],port=self.configs["port"],autocommit=self.configs["autocommit"],charset=self.configs["charset"],unix_socket=self.configs["unix_socket"], sql_mode=self.configs["sql_mode"], read_default_file=self.configs["read_default_file"], conv=self.configs["conv"], use_unicode=self.configs["use_unicode"], client_flag=self.configs["client_flag"], init_command=self.configs["init_command"], read_default_group=self.configs["read_default_group"], compress=self.configs["compress"], named_pipe=self.configs["named_pipe"], db=self.configs["db"], passwd=self.configs["passwd"], local_infile=self.configs["local_infile"], max_allowed_packet=self.configs["max_allowed_packet"], defer_connect=self.configs["defer_connect"], auth_plugin_map=self.configs["auth_plugin_map"], read_timeout=self.configs["read_timeout"], write_timeout=self.configs["write_timeout"],  bind_address=self.configs["bind_address"],  binary_prefix=self.configs["binary_prefix"],  program_name=self.configs["program_name"],  server_public_key=self.configs["server_public_key"])
    self.pool.append(t)
   except Exception as e:
    pass
