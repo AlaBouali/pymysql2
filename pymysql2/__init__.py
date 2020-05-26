@@ -37,8 +37,8 @@ class session:
      self.connection.commit()
  def reconnect(self):
     self.connection.ping(reconnect=True)
-    self.cursor.close()
-    self.cursor=self.connection.cursor()
+    """self.cursor.close()
+    self.cursor=self.connection.cursor()"""
  def ping(self,reconnect=False):
     self.connection.ping(reconnect=reconnect)
  def set_max_connections(self,*args):
@@ -109,8 +109,8 @@ class session:
      self.cursor=None
      self.statement=None
  def close(self):
-     if self.cursor:
-      self.cursor.close()
+     """if self.cursor:
+      self.cursor.close()"""
      if (self.connection) and ( self.is_alive()==True):
       self.connection.close()
  def current_version(self):
