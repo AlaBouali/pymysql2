@@ -17,6 +17,11 @@ def unescape_html(s,encoding="utf-8"):
  '''
  return HTMLParser.HTMLParser().unescape(s).encode(encoding)
 
+def escape_str(s):
+    #this function is similar to PHP: mysql_escape_string()
+    #it escapes any given string
+     return pymysql.escape_string(s)
+
 class session:
  def __init__(self,host,username,password,port=3306,database=None,timeout=5,charset='utf8',autocommit=True,ssl=None,cursorclass=pymysql.cursors.DictCursor,unix_socket=None,sql_mode=None, read_default_file=None, conv=None, use_unicode=None, client_flag=0, init_command=None, read_default_group=None, compress=None, named_pipe=None, db=None, passwd=None, local_infile=False, max_allowed_packet=16777216, defer_connect=False, auth_plugin_map=None, read_timeout=None, write_timeout=None, bind_address=None, binary_prefix=False, program_name=None, server_public_key=None):
     self.statement=None
@@ -35,10 +40,12 @@ class session:
      self.connection.rollback()
  def commit(self):
      self.connection.commit()
- def reconnect(self):
+ def reconnect(self,new_cursor=False):
     self.connection.ping(reconnect=True)
-    """self.cursor.close()
-    self.cursor=self.connection.cursor()"""
+    if new_cursor==True:
+      if self.cursor:
+          self.cursor.close()
+      self.cursor = self.connection.cursor()
  def ping(self,reconnect=False):
     self.connection.ping(reconnect=reconnect)
  def set_max_connections(self,*args):
@@ -86,8 +93,6 @@ class session:
      return " ( "+s+" ) "
  def real_escape_str(self,s):
      return self.connection.escape(s)
- def escape_str(self,s):
-     return pymysql.escape_string(s)
  def dict_to_str(self,data,in_seperator=' ',seperator=' , ',escape=True,parentheses=False):
     if escape==True:
       s= '''{}'''.format(seperator).join(['%s {} %s'.format(in_seperator) % (key, self.real_escape_str(value)) for (key, value) in data.items()])
@@ -108,9 +113,9 @@ class session:
      self.connection=None
      self.cursor=None
      self.statement=None
- def close(self):
-     """if self.cursor:
-      self.cursor.close()"""
+ def close(self,close_cursor=False):
+     if (self.cursor) and (close_cursor==True):
+         self.cursor.close()
      if (self.connection) and ( self.is_alive()==True):
       self.connection.close()
  def current_version(self):
