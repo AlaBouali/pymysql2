@@ -356,7 +356,7 @@ class pool:
      self.available=len(self.pool)
  def destroy(self):
      for x in self.pool:
-         x.close()
+         x.destroy()
          self.pool.remove(x)
          del x
      self.pool=None
